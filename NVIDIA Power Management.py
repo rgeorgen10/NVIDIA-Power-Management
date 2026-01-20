@@ -4,9 +4,9 @@ import sys
 import subprocess
 
 def checkDriver():
-    nDriver = subprocess.run(['ls', '/usr/lib'], capture_output=True)
-    nDriverOutput = nDriver.stdout
-    return "nvidia" in str(nDriverOutput)
+    nDriver = subprocess.run(['ls', '/usr/lib'], capture_output=True)  # Gets output from ls /usr/lib
+    nDriverOutput = nDriver.stdout       # Gets output from nDriver
+    return "nvidia" in str(nDriverOutput)  # Check for nvidia in nDriverOutput and returns result
 
 def main():
 
@@ -23,7 +23,8 @@ def main():
 
 
 # Check The Requirements Met
-    driverStatus = checkDriver()
+    driverStatus = checkDriver()  # Sets driverStatus to true if NVIDIA driver is installed
+    print(driverStatus) 
     
 if __name__ == "__main__":
 # This block ensures the main function runs when the script is executed
