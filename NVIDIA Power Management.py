@@ -17,22 +17,23 @@ def checkSudo():
         return False
 
 def createRules():
-    with open('/lib/udev/rules.d/80-nvidia-pm.rules', 'a') as nvidiapm:
+    with open('/lib/udev/rules.d/80-nvidia-pm.rules') as nvidiapm:
         for i in nvidiapm:
-            if(i=='ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"'):
+            if(i=='ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"\n'):
                 print("Power Management Rules Are Already In Place")
                 return
 
             else:
-                nvidiapm.write('# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind')
-                nvidiapm.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"')
-                nvidiapm.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"')
-                nvidiapm.write(' ')
-                nvidiapm.write('# Disable runtime PM for NVIDIA VGA/3D controller devices on driver unbind')
-                nvidiapm.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="on"')
-                nvidiapm.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="on"')
-                print('Created Power Management Rules')
-                return
+                with open('/lib/udev/rules.d/80-nvidia-pm.rules', 'a') as nvidiapmwrite:
+                    nvidiapmwrite.write('# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind\n')
+                    nvidiapmwrite.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"\n')
+                    nvidiapmwrite.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"\n')
+                    nvidiapmwrite.write(' \n')
+                    nvidiapmwrite.write('# Disable runtime PM for NVIDIA VGA/3D controller devices on driver unbind\n')
+                    nvidiapmwrite.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="on"\n')
+                    nvidiapmwrite.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="on"\n')
+                    print('Created Power Management Rules')
+                    return
 
 def main():
 
