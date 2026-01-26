@@ -17,19 +17,21 @@ def checkSudo():
         return False
 
 def createRules():
-    try:                                                
-        # try to open 80-nvidia-pm.rules, create if it doesn't exist
-        with open('/lib/udev/rules.d/80-nvidia-pm.rules', 'r') as nvidia-pm:
-            for i in nvidia-pm:
-                if(i=='ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"'):
-                    print("Power Management Rules Are Already In Place")
-                    return
+    with open('/lib/udev/rules.d/80-nvidia-pm.rules', 'a') as nvidia-pm:
+        for i in nvidia-pm:
+            if(i=='ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"'):
+                print("Power Management Rules Are Already In Place")
+                return
 
-                else:
-                    nvidia-pm.write('# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind')
-
-        
-    except:
+            else:
+                nvidia-pm.write('# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind')
+                nvidia-pm.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"')
+                nvidia-pm.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"')
+                nvidia-pm.write(' ')
+                nvidia-pm.write('# Disable runtime PM for NVIDIA VGA/3D controller devices on driver unbind')
+                nvidia-pm.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="on"')
+                nvidia-pm.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="on"')
+                return
 
 def main():
 
