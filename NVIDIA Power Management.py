@@ -34,6 +34,10 @@ def createRules(): # Creades 80-nvidia-pm.rules
         nvidiapmwrite.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="on"\n')
         nvidiapmwrite.write('ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="on"\n')
         nvidiapmwrite.write(' \n')
+        nvidiapmwrite.write('# Enable runtime PM for NVIDIA VGA/3D controller devices on adding device')
+        nvidiapmwrite.write('ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"')
+        nvidiapmwrite.write('ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"')
+        nvidiapmwrite.write('\n')
         print('Created Power Management Rules')
         return
 
