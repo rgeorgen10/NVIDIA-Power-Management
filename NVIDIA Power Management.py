@@ -25,7 +25,7 @@ def createRules(): # Creades 80-nvidia-pm.rules
                 print("Power Management Rules Are Already In Place")
                 return
 
-    with open('/lib/udev/rules.d/80-nvidia-pm.rules', 'a') as nvidiapmwrite: # open file to write
+    with open('/lib/udev/rules.d/80-nvidia-pm.rules', 'w') as nvidiapmwrite: # open file to write
         nvidiapmwrite.write('# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind\n')  # add power management rules
         nvidiapmwrite.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"\n')
         nvidiapmwrite.write('ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"\n')
@@ -42,7 +42,7 @@ def createRules(): # Creades 80-nvidia-pm.rules
         return
 
 def createModprobe(): #Add modprobe rules
-    with open('/etc/modprobe.d/nvidia.conf') as modproberead: # open file to read
+    with open('/etc/modprobe.d/nvidia.conf', 'r') as modproberead: # open file to read
         for i in modproberead:
             if(i=='options nvidia "NVreg_DynamicPowerManagement=0x02"\n'): # checks if modprobe rule is in place
                 print('Modprobe File for Nvidia Already In Place')
@@ -53,13 +53,13 @@ def createModprobe(): #Add modprobe rules
                             print('options nvidia "NVreg_EnableGpuFirmware=0" is already in place')
                             return
 
-                    with open('/etc/modprobe.d/nvidia.conf', 'a') as modprobewrite: # open file to write
+                    with open('/etc/modprobe.d/nvidia.conf', 'w') as modprobewrite: # open file to write
                         modprobewrite.write('options nvidia "NVreg_EnableGpuFirmware=0"\n') # add aditional rules
                         print('Added options nvidia "NVreg_EnableGpuFirmware=0"\n')
                         return
     
     # if modprobe rules hasn't already been added
-    with open('/etc/modprobe.d/nvidia.conf') as modprobewrite: # open file to write
+    with open('/etc/modprobe.d/nvidia.conf', 'w') as modprobewrite: # open file to write
         modprobewrite.write('options nvidia "NVreg_DynamicPowerManagement=0x02"')  # add modrpobe rule
         print('Created Modprobe Rules')
         addExtraRule = input('Do You also want to add "options nvidia "NVreg_EnableGpuFirmware=0"" (y/n): ') # prompt if user wants to add aditional rules
@@ -67,7 +67,7 @@ def createModprobe(): #Add modprobe rules
             for j in modproberead:
                 if(j=='options nvidia "NVreg_EnableGpuFirmware=0"\n'):
                     print('options nvidia "NVreg_EnableGpuFirmware=0" is already in place') 
-                    return
+                    return  
 
             modprobewrite.write('options nvidia "NVreg_EnableGpuFirmware=0"\n') # write additional rule if already not in place
             print('Added options nvidia "NVreg_EnableGpuFirmware=0"\n')
