@@ -7,7 +7,7 @@ import textwrap
 # file path variables
 UDEVPATH = '/home/riley/code/'
 UDEVFILE = UDEVPATH + '80-nvidia-pm.rules'
-MODPROBEPATH = 'etc/modprobe.d'
+MODPROBEPATH = '/home/riley/code/'
 MPFILE = MODPROBEPATH + 'nvidia.conf'
 
 # Change color to green
@@ -60,19 +60,20 @@ def createUdevRules():
         return
 
 # function to create the nvidia.conf file
-    def createConf():
-        finePower = 'options nvidia "NVreg_DynamicPowerManagement=0x02"'
-        newerVersion = 'options nvidia "NVreg_DynamicPowerManagement=0x03"'
-        extraRule = 'options nvidia "NVreg_EnableGpuFirmware=0"'
+def createConf():
+    finePower = 'options nvidia "NVreg_DynamicPowerManagement=0x02"'
+    newerVersion = 'options nvidia "NVreg_DynamicPowerManagement=0x03"'
+    extraRule = 'options nvidia "NVreg_EnableGpuFirmware=0"'
 
-        # Check directory
-        createpath(MODPROBEPATH)
+    # Check directory
+    createpath(MODPROBEPATH)
 
-        # Check if udevfile exists and check for existing rules
-        if(os.path.exists(MPFILE)):
-            with open(MPFILE, 'r') as file:
-                if finePower in file.read() and newerVersion in file.read() or extraRule in file.read():
-                    print("Modprobe file already has fine-grained power management enabled!")
+    # Check if udevfile exists and check for existing rules
+    if(os.path.exists(MPFILE)):
+        with open(MPFILE, 'r') as file:
+            if finePower in file.read() or newerVersion in file.read():
+                print("Modprobe file already has fine-grained power management enabled!")
+                
 
 # Get user y/n input
 def userPrompt(text):
@@ -112,7 +113,7 @@ def main():
     createUdevRules()
 
     # configure nvidia.conf
-
+    createConf()
 
 # Launch main
 if __name__ == "__main__":
