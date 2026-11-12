@@ -64,16 +64,32 @@ def createConf():
     finePower = 'options nvidia "NVreg_DynamicPowerManagement=0x02"'
     newerVersion = 'options nvidia "NVreg_DynamicPowerManagement=0x03"'
     extraRule = 'options nvidia "NVreg_EnableGpuFirmware=0"'
+    writepm = True
+    writeExtra = True
 
     # Check directory
     createpath(MODPROBEPATH)
 
     # Check if udevfile exists and check for existing rules
     if(os.path.exists(MPFILE)):
+        # Check what rules have already been written to the file
         with open(MPFILE, 'r') as file:
             if finePower in file.read() or newerVersion in file.read():
                 print("Modprobe file already has fine-grained power management enabled!")
-                
+                writepm = False
+            if extraRule in file.read():
+                print("Modprobe file already has the extra rule!")
+                writeExtra = False
+
+        # Write fine grained power management rules
+        if writepm:
+            pmSet = pmPrompt()
+            with open(MPFILE, 'w') as file:
+                if pmSet == 1: file.write(finePower)
+                if pmSet == 2: file.write(newerVersion)
+                print("Power management mode written to modprobe file in %s" % (MPFILE))
+
+        # Write extra rule prompting first
 
 # Get user y/n input
 def userPrompt(text):
@@ -82,6 +98,18 @@ def userPrompt(text):
         if val.lower() == 'y': return True
         if val.lower() == 'n': return False
         print("\033[1A\033[2K\r", end='')
+
+# Get which power management rule to add
+def pmPrompt():
+    while(True):
+        print("\n   Select a power management flag based on your GPU")
+        print("   1. 0x02 - For Turing generation GPUs")
+        print("   2. 0x03 - For Ampere and newer generation GPUs")
+        print("  -------------------------------------------------------")
+        val = input("Enter 1 or 2 to select: ")
+        if val == '1': return 1
+        if val == '2': return 2
+        print("\033[1A\033[2K\r", end='') # Not a valid input, ask again
     
 # Print opening program
 def requirements():
