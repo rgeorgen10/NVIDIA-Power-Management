@@ -31,6 +31,12 @@ def checkSudo():
 def createpath(path):
     Path(path).mkdir(parents=True, exist_ok=True)
 
+def enableService():
+    # Enable the nvidia-persistenced service
+    subprocess.run(['systemctl', 'enable', 'nvidia-persistenced'], check=True)
+    subprocess.run(['systemctl', 'start', 'nvidia-persistenced'], check=True)
+    print("Enabled and started nvidia-persistenced service")
+
 # Function to create the udev rules
 def createUdevRules():
     udevrules = textwrap.dedent("""\
@@ -51,12 +57,14 @@ def createUdevRules():
         with open(UDEVFILE, 'r') as file:
             if udevrules in file.read():
                 print("UDEV rules already present")
+                file.close()
                 return
 
     # Otherwise, create the file
     with open(UDEVFILE, 'w') as file:
         file.write(udevrules)
         print("UDEV rules have been created in %s" % (UDEVFILE))
+        file.close()
         return
 
 # function to create the nvidia.conf file
@@ -74,22 +82,33 @@ def createConf():
     if(os.path.exists(MPFILE)):
         # Check what rules have already been written to the file
         with open(MPFILE, 'r') as file:
-            if finePower in file.read() or newerVersion in file.read():
+            contents = file.read()
+            if finePower in contents or newerVersion in contents:
                 print("Modprobe file already has fine-grained power management enabled!")
                 writepm = False
-            if extraRule in file.read():
+            if extraRule in contents:
                 print("Modprobe file already has the extra rule!")
                 writeExtra = False
 
-        # Write fine grained power management rules
-        if writepm:
-            pmSet = pmPrompt()
-            with open(MPFILE, 'w') as file:
-                if pmSet == 1: file.write(finePower)
-                if pmSet == 2: file.write(newerVersion)
-                print("Power management mode written to modprobe file in %s" % (MPFILE))
+    # Write fine grained power management rules
+    if writepm:
+        pmSet = pmPrompt()
+        with open(MPFILE, 'w') as file:
+            if pmSet == 1: file.write(finePower)
+            if pmSet == 2: file.write(newerVersion)
+            print("Power management mode written to modprobe file in %s\n" % (MPFILE))
 
-        # Write extra rule prompting first
+    # Write extra rule prompting first
+    if writeExtra:
+        if userPrompt("Would you like to add the extra rule to disable GPU firmware (y/n): "):
+            with open(MPFILE, 'a') as file:
+                file.write(extraRule)
+                print("Extra rule written to modprobe file in %s\n" % (MPFILE))
+        else:
+            print("Extra rule not added to modprobe file")
+
+    file.close()
+    return 
 
 # Get user y/n input
 def userPrompt(text):
@@ -142,6 +161,9 @@ def main():
 
     # configure nvidia.conf
     createConf()
+
+    # Enable nvidia-persistenced service
+    enableService()
 
 # Launch main
 if __name__ == "__main__":
