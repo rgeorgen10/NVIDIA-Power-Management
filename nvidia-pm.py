@@ -3,11 +3,12 @@ import os
 import subprocess
 from pathlib import Path
 import textwrap
+import re
 
 # file path variables
-UDEVPATH = '/home/riley/code/'
+UDEVPATH = '/lib/udev/rules.d/'
 UDEVFILE = UDEVPATH + '80-nvidia-pm.rules'
-MODPROBEPATH = '/home/riley/code/'
+MODPROBEPATH = '/etc/modprobe.d/'
 MPFILE = MODPROBEPATH + 'nvidia.conf'
 
 # Change color to green
@@ -19,9 +20,7 @@ def white():
 
 # Check if the NVIDIA driver is installed
 def checkDriver():
-    nDriver = subprocess.run(['ls', '/usr/lib/systemd/system'], capture_output=True)  # Gets output from ls /usr/lib
-    nDriverOutput = nDriver.stdout       # Gets output from nDriver
-    return "nvidia-persistenced" in str(nDriverOutput)  # Check for nvidia in nDriverOutput and returns result
+    return Path('/usr/lib/systemd/system/nvidia-persistenced.service').exists()  # Check if the nvidia-persistenced service file exists
 
 # Check if the script has Sudo permission
 def checkSudo():               
@@ -61,7 +60,7 @@ def createUdevRules():
                 return
 
     # Otherwise, create the file
-    with open(UDEVFILE, 'w') as file:
+    with open(UDEVFILE, 'a') as file:
         file.write(udevrules)
         print("UDEV rules have been created in %s" % (UDEVFILE))
         file.close()
@@ -83,27 +82,27 @@ def createConf():
         # Check what rules have already been written to the file
         with open(MPFILE, 'r') as file:
             contents = file.read()
-            if finePower in contents or newerVersion in contents:
+            if re.search("NVreg_DynamicPowerManagement=0x0[23]", contents):
                 print("Modprobe file already has fine-grained power management enabled!")
                 writepm = False
-            if extraRule in contents:
+            if re.search("NVreg_EnableGpuFirmware=0", contents):
                 print("Modprobe file already has the extra rule!")
                 writeExtra = False
 
     # Write fine grained power management rules
     if writepm:
         pmSet = pmPrompt()
-        with open(MPFILE, 'w') as file:
-            if pmSet == 1: file.write(finePower)
-            if pmSet == 2: file.write(newerVersion)
-            print("Power management mode written to modprobe file in %s\n" % (MPFILE))
+        with open(MPFILE, 'a') as file:
+            if pmSet == 1: file.write(finePower+'\n')
+            if pmSet == 2: file.write(newerVersion+'\n')
+            print("Power management mode written to modprobe file in %s" % (MPFILE))
 
     # Write extra rule prompting first
     if writeExtra:
-        if userPrompt("Would you like to add the extra rule to disable GPU firmware (y/n): "):
+        if userPrompt("Would you like to add the extra rule to disable GPU firmware. Only works with the proprietary driver (y/n): "):
             with open(MPFILE, 'a') as file:
-                file.write(extraRule)
-                print("Extra rule written to modprobe file in %s\n" % (MPFILE))
+                file.write(extraRule+'\n')
+                print("Extra rule written to modprobe file in %s" % (MPFILE))
         else:
             print("Extra rule not added to modprobe file")
 
@@ -120,11 +119,11 @@ def userPrompt(text):
 
 # Get which power management rule to add
 def pmPrompt():
+    print("\n   Select a power management flag based on your GPU")
+    print("   1. 0x02 - For Turing generation GPUs")
+    print("   2. 0x03 - For Ampere and newer generation GPUs")
+    print("  -------------------------------------------------------")
     while(True):
-        print("\n   Select a power management flag based on your GPU")
-        print("   1. 0x02 - For Turing generation GPUs")
-        print("   2. 0x03 - For Ampere and newer generation GPUs")
-        print("  -------------------------------------------------------")
         val = input("Enter 1 or 2 to select: ")
         if val == '1': return 1
         if val == '2': return 2
@@ -137,12 +136,12 @@ def requirements():
     print("   |     NVIDIA - ENABLE FINE-GRAINED POWER MANAGEMENT     |")
     print("   |-------------------------------------------------------|")
     print("   | REQUIREMENTS:                                         |")
-    print("   | 1) Have the NVIDIA Proprietary Driver Installed       |")
+    print("   | 1) Have the NVIDIA Driver Installed                   |")
     print("   | 2) This Script Must Have Sudo Privileges              |")
     print("   |-------------------------------------------------------|")
     print("   | REQUIREMENTS MET:                                     |")
     print("   | 1) NVIDIA Driver: Installed                           |") if checkDriver() else print("   | 1) NVIDIA Driver: Not Installed                       |")
-    print("   | 2) Sudo Prviledges: True                              |") if checkSudo() else print("   | 2) Sudo Prviledges: False                             |")
+    print("   | 2) Sudo Priviledges: True                              |") if checkSudo() else print("   | 2) Sudo Priviledges: False                             |")
     print("   |-------------------------------------------------------|")
     print('')
     if not checkDriver() or not checkSudo(): print("         Exiting Script: Requirements Not Met!!!"); return False
@@ -165,10 +164,23 @@ def main():
     # Enable nvidia-persistenced service
     enableService()
 
+    # Print completion message
+    print("\n   |-------------------------------------------------------|")
+    print("   |     NVIDIA FINE-GRAINED POWER MANAGEMENT CONFIGURED   |")
+    print("   |-------------------------------------------------------|")
+    print("   | Post steps:                                           |")
+    print("   | 1) Rebuild initramfs                                  |")
+    print("   | 2) Reboot your system to apply changes                |")
+    print("   |-------------------------------------------------------|")
+
+    # Make terminal white again
+    white()
+
 # Launch main
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"An error occured: {e}", file=sys.stderr)
+        print(f"An error occurred: {e}", file=sys.stderr)
+        white()
         sys.exit(1)

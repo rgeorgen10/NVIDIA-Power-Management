@@ -9,7 +9,7 @@ It does this by writing the necessary `udev` and `modprobe` configuration files 
 When run, the script:
 
 1. **Checks prerequisites**
-   - Confirms the NVIDIA proprietary driver is installed (by checking for `nvidia-persistenced` under `/usr/lib/systemd/system`).
+   - Confirms the NVIDIA driver is installed (by checking for `nvidia-persistenced` under `/usr/lib/systemd/system`).
    - Confirms the script is being run with `sudo`/root privileges.
 2. **Creates udev rules** — `/lib/udev/rules.d/80-nvidia-pm.rules`
    Adds rules that set `power/control` to `auto` when the NVIDIA VGA/3D controller binds to its driver, and back to `on` when it unbinds. This allows the GPU to runtime-suspend when idle.
@@ -29,7 +29,7 @@ If any of the rules are already present in the target files, the script detects 
 ## Usage
 
 ```bash
-sudo python3 "NVIDIA Power Management.py"
+sudo python3 nvidia-pm.py"
 ```
 
 The script will print a requirements check, then prompt for confirmation before making any changes:
@@ -65,10 +65,10 @@ After confirming, you'll optionally be asked whether to also add the `NVreg_Enab
 ## Notes / Limitations
 
 - The script exits without making changes if the NVIDIA driver isn't detected or if it isn't run with sudo.
-- It assumes `/lib/udev/rules.d/80-nvidia-pm.rules` and `/etc/modprobe.d/nvidia.conf` already exist on disk (e.g. as empty files) before it tries to read/append to them — create them first if they aren't already present on your system.
-- Tested on systems using the NVIDIA proprietary driver; behavior with the open-source `nouveau` driver is not supported.
+- Tested on systems using the NVIDIA open or proprietary driver; behavior with the open-source `nouveau` driver is not supported.
 - Always review the resulting configuration files before rebooting, especially if you have an existing custom power management setup.
+- If you have existing rules in the files modified, make backups as they could potentially be over written
 
 ## License
 
-No license specified yet — add one (e.g. MIT) if you'd like others to freely use or contribute to this project.
+GNU Open Source
